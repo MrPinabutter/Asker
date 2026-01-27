@@ -10,26 +10,38 @@ import { getTimestamp } from "./utils/date";
 let selectedOption = 1;
 let currentMenu = MENU_STATE.MAIN;
 
+const navigateToMenu = (menu: MENU_STATE) => {
+  currentMenu = menu;
+  readPrompt();
+};
+
 const menuStartOptions = [
   {
     id: 1,
     label: "Start form",
     action: () => {
-      currentMenu = MENU_STATE.SELECT_FORM;
+      navigateToMenu(MENU_STATE.SELECT_FORM);
     },
   },
   {
     id: 2,
     label: "Create form",
     action: () => {
-      currentMenu = MENU_STATE.CREATE_FORM;
+      navigateToMenu(MENU_STATE.CREATE_FORM);
     },
   },
   {
     id: 3,
     label: "Look answers",
     action: () => {
-      currentMenu = MENU_STATE.LOOK_ANSWERS;
+      clearScreen();
+      process.stdout.write(
+        `${COLORS.YELLOW}Feature not implemented yet. Returning to main menu...${COLORS.RESET}\n`,
+      );
+
+      setTimeout(() => {
+        navigateToMenu(MENU_STATE.MAIN);
+      }, 2000);
     },
   },
 ];
@@ -51,17 +63,13 @@ const handleUpdateOptionsMenu =
       }
     } else if (key[0] === KeyCode.ENTER) {
       clearScreen();
-      options.find((option) => option.id === selectedOption)?.action();
-
       process.stdin.removeAllListeners("data");
-      readPrompt();
+
+      options.find((option) => option.id === selectedOption)?.action();
     } else if (key[0] === KeyCode.ESC || key[0] === KeyCode.CTRL_C) {
       showCursor();
       clearScreen();
       process.exit();
-    } else {
-      clearScreen();
-      chooseOption(selectedOption, options);
     }
   };
 
@@ -80,8 +88,7 @@ const showMenuSelectForm = () => {
   readdir("./forms", (err, files) => {
     if (err) {
       console.error("Error reading forms directory:", err);
-      currentMenu = MENU_STATE.MAIN;
-      readPrompt();
+      navigateToMenu(MENU_STATE.MAIN);
       return;
     }
 
@@ -91,24 +98,39 @@ const showMenuSelectForm = () => {
       );
 
       setTimeout(() => {
-        currentMenu = MENU_STATE.MAIN;
-        readPrompt();
+        navigateToMenu(MENU_STATE.MAIN);
       }, 2000);
       return;
     }
 
     const titleFiles = files
-      .map((file) => {
-        const content = readFileSync(`./forms/${file}`, "utf-8");
+      .map((filename) => {
+        const content = readFileSync(`./forms/${filename}`, "utf-8");
         const title = content.split("\n")[0];
-        return title || "Untitled Form";
+        return { filename, title: title || "Untitled Form" };
       })
-      .toSorted((a, b) => a.localeCompare(b));
+      .toSorted((a, b) => a?.title.localeCompare(b?.title));
 
     const options = titleFiles.map((file, index) => ({
       id: index + 2,
-      label: file,
-      action: () => {},
+      label: file.title,
+      action: () => {
+        clearScreen();
+        const fileInfo = getFileInfo(file.filename);
+
+        if (fileInfo.questions.length === 0) {
+          process.stdout.write(
+            `${COLORS.YELLOW}This form has no questions. Returning to main menu...${COLORS.RESET}\n`,
+          );
+
+          setTimeout(() => {
+            navigateToMenu(MENU_STATE.MAIN);
+          }, 2000);
+          return;
+        }
+
+        renderQuestions(fileInfo.questions);
+      },
     })) as {
       id: number;
       label: string;
@@ -120,8 +142,7 @@ const showMenuSelectForm = () => {
       id: 1,
       label: "Go back",
       action: () => {
-        currentMenu = MENU_STATE.MAIN;
-        readPrompt();
+        navigateToMenu(MENU_STATE.MAIN);
       },
       isGoBack: true,
     });
@@ -130,6 +151,40 @@ const showMenuSelectForm = () => {
 
     process.stdin.on("data", handleUpdateOptionsMenu(options));
   });
+};
+
+const renderQuestions = (questions: string[], index: number = 0) => {
+  if (index >= questions.length) {
+    navigateToMenu(MENU_STATE.MAIN);
+    return;
+  }
+
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  showCursor();
+  process.stdin.setRawMode(false);
+
+  process.stdout.write(
+    `${COLORS.BOLD}Q${index + 1}:${COLORS.RESET} ${questions[index]}\n\n`,
+  );
+
+  rl.question(
+    `${COLORS.CYAN}${COLORS.BOLD}Your answer:${COLORS.RESET}\n\n> `,
+    (answer) => {
+      rl.close();
+      renderQuestions(questions, index + 1);
+    },
+  );
+};
+
+const getFileInfo = (filename: string) => {
+  const content = readFileSync(`./forms/${filename}`, "utf-8");
+  const lines = content.split("\n");
+  const title = lines[0] || "Untitled Form";
+  const questions = lines.slice(1).filter((line) => line.trim() !== "");
+  return { title, questions };
 };
 
 const showMenuCreateForm = () => {
@@ -145,6 +200,7 @@ const showMenuCreateForm = () => {
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Type a title to your form:${COLORS.RESET} ${COLORS.DIM}(empty to cancel)${COLORS.RESET}\n\n`,
   );
+
   rl.question("> ", (answer) => {
     rl.close();
     if (!answer) {
@@ -185,10 +241,8 @@ const addQuestionToForm = (
     `${COLORS.CYAN}${COLORS.BOLD}Question ${question}:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
   );
   rl.question("> ", (answer) => {
-    rl.close();
     if (!answer) {
-      currentMenu = MENU_STATE.MAIN;
-      readPrompt();
+      navigateToMenu(MENU_STATE.MAIN);
       return;
     }
 
@@ -199,6 +253,8 @@ const addQuestionToForm = (
       process.stdout.write(`\n`);
       addQuestionToForm(formTitle, timestamp, question + 1);
     });
+
+    rl.close();
   });
 };
 

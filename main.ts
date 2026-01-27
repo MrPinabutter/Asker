@@ -1,26 +1,16 @@
+import { appendFile, readdir, readFileSync, writeFile } from "node:fs";
 import { createInterface } from "node:readline";
-import {
-  hideCursor,
-  clearScreen,
-  chooseOption,
-  KeyCode,
-  getTimestamp,
-  COLORS,
-  showCursor,
-} from "./utils";
-import { writeFile, appendFile, readdir, read, readFileSync } from "node:fs";
+import { KeyCode } from "./core/input/keycodes";
+import { chooseOption, MENU_STATE } from "./core/input/menu";
+import { COLORS } from "./core/terminal/colors";
+import { hideCursor, showCursor } from "./core/terminal/cursor";
+import { clearScreen } from "./core/terminal/screen";
+import { getTimestamp } from "./utils/date";
 
 const rl = createInterface({
   input: process.stdin,
   output: process.stdout,
 });
-
-enum MENU_STATE {
-  MAIN = 1,
-  SELECT_FORM,
-  CREATE_FORM,
-  LOOK_ANSWERS,
-}
 
 let selectedOption = 1;
 let currentMenu = MENU_STATE.MAIN;
@@ -49,7 +39,7 @@ const menuStartOptions = [
   },
 ];
 
-const handleKey =
+const handleUpdateOptionsMenu =
   (options: { id: number; label: string; action: () => void }[]) =>
   (key: Buffer) => {
     if (key[2] === KeyCode.DOWN_ARROW) {
@@ -85,7 +75,7 @@ const showMenuStart = () => {
   clearScreen();
   hideCursor();
   chooseOption(selectedOption, menuStartOptions);
-  process.stdin.on("data", handleKey(menuStartOptions));
+  process.stdin.on("data", handleUpdateOptionsMenu(menuStartOptions));
 };
 
 const showMenuSelectForm = () => {
@@ -117,25 +107,32 @@ const showMenuSelectForm = () => {
     });
 
     const options = titleFiles.map((file, index) => ({
-      id: index + 1,
+      id: index + 2,
       label: file,
       action: () => {},
     }));
 
+    options.unshift({
+      id: 1,
+      label: "← Go back",
+      action: () => {
+        currentMenu = MENU_STATE.MAIN;
+        readPrompt();
+      },
+    });
+
     chooseOption(selectedOption, options);
 
-    process.stdin.on("data", handleKey(options));
+    process.stdin.on("data", handleUpdateOptionsMenu(options));
   });
 };
 
 const showMenuCreateForm = () => {
   clearScreen();
   showCursor();
-
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Type a title to your form:${COLORS.RESET} ${COLORS.DIM}(empty to cancel)${COLORS.RESET}\n\n`,
   );
-
   rl.question("> ", (answer) => {
     if (!answer) {
       rl.close();
@@ -159,7 +156,6 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Now add a question to your form:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
   );
-
   rl.question("> ", (answer) => {
     if (!answer) {
       rl.close();

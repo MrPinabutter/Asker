@@ -15,29 +15,36 @@ const rl = createInterface({
   output: process.stdout,
 });
 
+enum MENU_STATE {
+  MAIN = 1,
+  SELECT_FORM,
+  CREATE_FORM,
+  LOOK_ANSWERS,
+}
+
 let optionSelected = 1;
-let currentMenu = 1;
+let currentMenu = MENU_STATE.MAIN;
 
 const menuStartOptions = [
   {
     id: 1,
     label: "Start form",
     action: () => {
-      currentMenu = 2;
+      currentMenu = MENU_STATE.SELECT_FORM;
     },
   },
   {
     id: 2,
     label: "Create form",
     action: () => {
-      currentMenu = 3;
+      currentMenu = MENU_STATE.CREATE_FORM;
     },
   },
   {
     id: 3,
     label: "Look answers",
     action: () => {
-      currentMenu = 4;
+      currentMenu = MENU_STATE.LOOK_ANSWERS;
     },
   },
 ];
@@ -108,7 +115,7 @@ const showMenuCreateForm = () => {
   rl.question("> ", (answer) => {
     if (!answer) {
       rl.close();
-      currentMenu = 1;
+      currentMenu = MENU_STATE.MAIN;
       readPropmt();
       return;
     }
@@ -124,7 +131,6 @@ const showMenuCreateForm = () => {
   });
 };
 
-clearScreen();
 const addQuestionToForm = (formTitle: string, timestamp: string) => {
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Now add a question to your form:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
@@ -133,7 +139,7 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
   rl.question("> ", (answer) => {
     if (!answer) {
       rl.close();
-      currentMenu = 1;
+      currentMenu = MENU_STATE.MAIN;
       readPropmt();
       return;
     }
@@ -150,13 +156,13 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
 const readPropmt = () => {
   hideCursor();
   switch (currentMenu) {
-    case 1:
+    case MENU_STATE.MAIN:
       showMenuStart();
       break;
-    case 2:
+    case MENU_STATE.SELECT_FORM:
       showMenuSelectForm();
       break;
-    case 3:
+    case MENU_STATE.CREATE_FORM:
       showMenuCreateForm();
       break;
   }

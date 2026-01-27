@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 export const hideCursor = () => {
   process.stdout.write("\x1B[?25l");
 };
@@ -51,4 +53,8 @@ export const COLORS = {
   BG_CYAN: "\x1b[46m",
   BG_GREEN: "\x1b[42m",
   BLACK: "\x1b[30m",
+};
+
+export const getTimestamp = () => {
+  return dayjs().format("YYYYMMDDHHmmss");
 };

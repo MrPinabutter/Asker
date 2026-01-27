@@ -4,9 +4,11 @@ import {
   clearScreen,
   chooseOption,
   KeyCode,
+  getTimestamp,
   COLORS,
+  showCursor,
 } from "./utils";
-import { writeFile } from "node:fs";
+import { writeFile, appendFile } from "node:fs";
 
 const rl = createInterface({
   input: process.stdin,
@@ -97,6 +99,7 @@ const showMenuSelectForm = () => {
 
 const showMenuCreateForm = () => {
   clearScreen();
+  showCursor();
 
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Type a title to your form:${COLORS.RESET} ${COLORS.DIM}(empty to cancel)${COLORS.RESET}\n\n`,
@@ -110,28 +113,38 @@ const showMenuCreateForm = () => {
       return;
     }
 
-    writeFile(`./forms/${answer}.txt`, "", (err) => {
+    const timestamp = getTimestamp();
+
+    writeFile(`./forms/${timestamp}.txt`, answer + "\n", (err) => {
       if (err) {
         console.error("Error creating form:", err);
-      } else {
-        console.log(`Form titled "${answer}" created!`);
       }
-      rl.close();
     });
+    addQuestionToForm(answer, timestamp);
   });
 };
 
-const addQuestionToForm = (formTitle: string, question: string) => {
-  writeFile(
-    `./forms/${formTitle}.txt`,
-    `\n${question}`,
-    { flag: "a" },
-    (err) => {
-      if (err) {
-        console.error("Error adding question to form:", err);
-      }
-    },
+clearScreen();
+const addQuestionToForm = (formTitle: string, timestamp: string) => {
+  process.stdout.write(
+    `${COLORS.CYAN}${COLORS.BOLD}Now add a question to your form:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
   );
+
+  rl.question("> ", (answer) => {
+    if (!answer) {
+      rl.close();
+      currentMenu = 1;
+      readPropmt();
+      return;
+    }
+
+    appendFile(`./forms/${timestamp}.txt`, answer + "\n", (err) => {
+      if (err) {
+        console.error("Error creating form:", err);
+      }
+      addQuestionToForm(formTitle, timestamp);
+    });
+  });
 };
 
 const readPropmt = () => {

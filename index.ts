@@ -8,7 +8,7 @@ import {
   COLORS,
   showCursor,
 } from "./utils";
-import { writeFile, appendFile } from "node:fs";
+import { writeFile, appendFile, readdir, read, readFileSync } from "node:fs";
 
 const rl = createInterface({
   input: process.stdin,
@@ -22,7 +22,7 @@ enum MENU_STATE {
   LOOK_ANSWERS,
 }
 
-let optionSelected = 1;
+let selectedOption = 1;
 let currentMenu = MENU_STATE.MAIN;
 
 const menuStartOptions = [
@@ -49,58 +49,82 @@ const menuStartOptions = [
   },
 ];
 
-const showMenuStart = () => {
-  clearScreen();
-  hideCursor();
-  chooseOption(optionSelected, menuStartOptions);
-
-  const handleKey = (key: Buffer) => {
+const handleKey =
+  (options: { id: number; label: string; action: () => void }[]) =>
+  (key: Buffer) => {
     if (key[2] === KeyCode.DOWN_ARROW) {
-      if (optionSelected < menuStartOptions.length) {
-        optionSelected++;
+      if (selectedOption < options.length) {
+        selectedOption++;
         clearScreen();
-        chooseOption(optionSelected, menuStartOptions);
+        chooseOption(selectedOption, options);
       }
     } else if (key[2] === KeyCode.UP_ARROW) {
-      if (optionSelected > 1) {
-        optionSelected--;
+      if (selectedOption > 1) {
+        selectedOption--;
         clearScreen();
-        chooseOption(optionSelected, menuStartOptions);
+        chooseOption(selectedOption, options);
       }
     } else if (key[0] === KeyCode.ENTER) {
       clearScreen();
-      menuStartOptions.find((option) => option.id === optionSelected)?.action();
-      process.stdin.removeListener("data", handleKey);
-      readPropmt();
+      options.find((option) => option.id === selectedOption)?.action();
+
+      process.stdin.removeAllListeners("data");
+      readPrompt();
+    } else if (key[0] === KeyCode.ESC || key[0] === KeyCode.CTRL_C) {
+      showCursor();
+      clearScreen();
+      process.exit();
     } else {
       clearScreen();
-      chooseOption(optionSelected, menuStartOptions);
+      chooseOption(selectedOption, options);
     }
   };
-  process.stdin.on("data", handleKey);
+
+const showMenuStart = () => {
+  selectedOption = 1;
+  clearScreen();
+  hideCursor();
+  chooseOption(selectedOption, menuStartOptions);
+  process.stdin.on("data", handleKey(menuStartOptions));
 };
 
 const showMenuSelectForm = () => {
   clearScreen();
-  chooseOption(optionSelected, menuStartOptions);
-
-  process.stdin.on("data", (key) => {
-    if (key[2] === KeyCode.DOWN_ARROW) {
-      if (optionSelected < menuStartOptions.length) {
-        optionSelected++;
-        clearScreen();
-        chooseOption(optionSelected, menuStartOptions);
-      }
-    } else if (key[2] === KeyCode.UP_ARROW) {
-      if (optionSelected > 1) {
-        optionSelected--;
-        clearScreen();
-        chooseOption(optionSelected, menuStartOptions);
-      }
-    } else {
-      clearScreen();
-      chooseOption(optionSelected, menuStartOptions);
+  readdir("./forms", (err, files) => {
+    if (err) {
+      console.error("Error reading forms directory:", err);
+      currentMenu = MENU_STATE.MAIN;
+      readPrompt();
+      return;
     }
+
+    if (files.length === 0) {
+      process.stdout.write(
+        `${COLORS.YELLOW}No forms available. Returning to main menu...${COLORS.RESET}\n`,
+      );
+
+      setTimeout(() => {
+        currentMenu = MENU_STATE.MAIN;
+        readPrompt();
+      }, 2000);
+      return;
+    }
+
+    const titleFiles = files.map((file) => {
+      const content = readFileSync(`./forms/${file}`, "utf-8");
+      const title = content.split("\n")[0];
+      return title || "Untitled Form";
+    });
+
+    const options = titleFiles.map((file, index) => ({
+      id: index + 1,
+      label: file,
+      action: () => {},
+    }));
+
+    chooseOption(selectedOption, options);
+
+    process.stdin.on("data", handleKey(options));
   });
 };
 
@@ -116,18 +140,18 @@ const showMenuCreateForm = () => {
     if (!answer) {
       rl.close();
       currentMenu = MENU_STATE.MAIN;
-      readPropmt();
+      readPrompt();
       return;
     }
 
     const timestamp = getTimestamp();
 
-    writeFile(`./forms/${timestamp}.txt`, answer + "\n", (err) => {
+    writeFile(`./forms/${timestamp}.txt`, answer.trim() + "\n", (err) => {
       if (err) {
         console.error("Error creating form:", err);
       }
     });
-    addQuestionToForm(answer, timestamp);
+    addQuestionToForm(answer.trim(), timestamp);
   });
 };
 
@@ -140,11 +164,11 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
     if (!answer) {
       rl.close();
       currentMenu = MENU_STATE.MAIN;
-      readPropmt();
+      readPrompt();
       return;
     }
 
-    appendFile(`./forms/${timestamp}.txt`, answer + "\n", (err) => {
+    appendFile(`./forms/${timestamp}.txt`, answer.trim() + "\n", (err) => {
       if (err) {
         console.error("Error creating form:", err);
       }
@@ -153,7 +177,7 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
   });
 };
 
-const readPropmt = () => {
+const readPrompt = () => {
   hideCursor();
   switch (currentMenu) {
     case MENU_STATE.MAIN:
@@ -168,4 +192,4 @@ const readPropmt = () => {
   }
 };
 
-readPropmt();
+readPrompt();

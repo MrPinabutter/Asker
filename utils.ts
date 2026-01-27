@@ -24,9 +24,12 @@ export enum KeyCode {
 export const chooseOption = (
   selected: number,
   options: { id: number; label: string }[],
+  props?: { title: string },
 ) => {
+  const title = props?.title ?? "Select an option:";
+
   process.stdout.write(
-    `${COLORS.CYAN}${COLORS.BOLD}Select an option:${COLORS.RESET} ${COLORS.DIM}(use arrow keys, press Enter to confirm)${COLORS.RESET}\n\n`,
+    `${COLORS.CYAN}${COLORS.BOLD}${title}${COLORS.RESET} ${COLORS.DIM}(use arrow keys, press Enter to confirm)${COLORS.RESET}\n\n`,
   );
 
   options.forEach((option) => {

@@ -10,5 +10,6 @@ export const COLORS = {
   RED: "\x1b[31m",
   BG_CYAN: "\x1b[46m",
   BG_GREEN: "\x1b[42m",
+  BG_RED: "\x1b[41m",
   BLACK: "\x1b[30m",
 };

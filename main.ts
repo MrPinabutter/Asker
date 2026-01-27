@@ -4,13 +4,8 @@ import { KeyCode } from "./core/input/keycodes";
 import { chooseOption, MENU_STATE } from "./core/input/menu";
 import { COLORS } from "./core/terminal/colors";
 import { hideCursor, showCursor } from "./core/terminal/cursor";
-import { clearScreen } from "./core/terminal/screen";
+import { clearScreen, printSeparator } from "./core/terminal/screen";
 import { getTimestamp } from "./utils/date";
-
-const rl = createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 let selectedOption = 1;
 let currentMenu = MENU_STATE.MAIN;
@@ -74,6 +69,8 @@ const showMenuStart = () => {
   selectedOption = 1;
   clearScreen();
   hideCursor();
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
   chooseOption(selectedOption, menuStartOptions);
   process.stdin.on("data", handleUpdateOptionsMenu(menuStartOptions));
 };
@@ -110,15 +107,21 @@ const showMenuSelectForm = () => {
       id: index + 2,
       label: file,
       action: () => {},
-    }));
+    })) as {
+      id: number;
+      label: string;
+      action: () => void;
+      isGoBack?: boolean;
+    }[];
 
     options.unshift({
       id: 1,
-      label: "← Go back",
+      label: "Go back",
       action: () => {
         currentMenu = MENU_STATE.MAIN;
         readPrompt();
       },
+      isGoBack: true,
     });
 
     chooseOption(selectedOption, options);
@@ -130,12 +133,19 @@ const showMenuSelectForm = () => {
 const showMenuCreateForm = () => {
   clearScreen();
   showCursor();
+  process.stdin.setRawMode(false);
+
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   process.stdout.write(
     `${COLORS.CYAN}${COLORS.BOLD}Type a title to your form:${COLORS.RESET} ${COLORS.DIM}(empty to cancel)${COLORS.RESET}\n\n`,
   );
   rl.question("> ", (answer) => {
+    rl.close();
     if (!answer) {
-      rl.close();
       currentMenu = MENU_STATE.MAIN;
       readPrompt();
       return;
@@ -148,17 +158,33 @@ const showMenuCreateForm = () => {
         console.error("Error creating form:", err);
       }
     });
+
+    clearScreen();
+
+    const message = ` ${COLORS.BOLD}"${answer.trim()}"${COLORS.RESET}`;
+    process.stdout.write(`\n${message}${COLORS.RESET}\n`);
+
+    printSeparator();
     addQuestionToForm(answer.trim(), timestamp);
   });
 };
 
-const addQuestionToForm = (formTitle: string, timestamp: string) => {
+const addQuestionToForm = (
+  formTitle: string,
+  timestamp: string,
+  question: number = 1,
+) => {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
   process.stdout.write(
-    `${COLORS.CYAN}${COLORS.BOLD}Now add a question to your form:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
+    `${COLORS.CYAN}${COLORS.BOLD}Question ${question}:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
   );
   rl.question("> ", (answer) => {
+    rl.close();
     if (!answer) {
-      rl.close();
       currentMenu = MENU_STATE.MAIN;
       readPrompt();
       return;
@@ -168,7 +194,8 @@ const addQuestionToForm = (formTitle: string, timestamp: string) => {
       if (err) {
         console.error("Error creating form:", err);
       }
-      addQuestionToForm(formTitle, timestamp);
+      process.stdout.write(`\n`);
+      addQuestionToForm(formTitle, timestamp, question + 1);
     });
   });
 };

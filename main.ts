@@ -97,11 +97,13 @@ const showMenuSelectForm = () => {
       return;
     }
 
-    const titleFiles = files.map((file) => {
-      const content = readFileSync(`./forms/${file}`, "utf-8");
-      const title = content.split("\n")[0];
-      return title || "Untitled Form";
-    });
+    const titleFiles = files
+      .map((file) => {
+        const content = readFileSync(`./forms/${file}`, "utf-8");
+        const title = content.split("\n")[0];
+        return title || "Untitled Form";
+      })
+      .toSorted((a, b) => a.localeCompare(b));
 
     const options = titleFiles.map((file, index) => ({
       id: index + 2,

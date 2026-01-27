@@ -159,24 +159,23 @@ const renderQuestions = (questions: string[], index: number = 0) => {
     return;
   }
 
+  showCursor();
+  process.stdin.setRawMode(false);
+
   const rl = createInterface({
     input: process.stdin,
     output: process.stdout,
   });
-  showCursor();
-  process.stdin.setRawMode(false);
 
   process.stdout.write(
-    `${COLORS.BOLD}Q${index + 1}:${COLORS.RESET} ${questions[index]}\n\n`,
+    `${COLORS.CYAN}${COLORS.BOLD}Q${index + 1}: ${questions[index]}${COLORS.RESET}\n`,
   );
 
-  rl.question(
-    `${COLORS.CYAN}${COLORS.BOLD}Your answer:${COLORS.RESET}\n\n> `,
-    (answer) => {
-      rl.close();
-      renderQuestions(questions, index + 1);
-    },
-  );
+  rl.question("> ", (answer) => {
+    rl.close();
+    process.stdout.write("\n");
+    renderQuestions(questions, index + 1);
+  });
 };
 
 const getFileInfo = (filename: string) => {

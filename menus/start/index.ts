@@ -6,7 +6,6 @@ import { menuStartOptions } from "./config";
 let selectedOption = 1;
 
 export const showMenuStart = () => {
-  selectedOption = 1;
   clearScreen();
   hideCursor();
   process.stdin.setRawMode(true);

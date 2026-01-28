@@ -3,9 +3,9 @@ import { MENU_STATE } from "../../core/input/menu";
 import { COLORS } from "../../core/terminal/colors";
 import { showCursor } from "../../core/terminal/cursor";
 import { clearScreen, printSeparator } from "../../core/terminal/screen";
-import { navigateToMenu } from "../../main";
-import { getTimestamp } from "../../utils/date";
 import { createInterface } from "node:readline";
+import { navigateToMenu } from "../../navigate";
+import { getTimestamp } from "../../utils/date";
 
 export const showMenuCreateForm = () => {
   clearScreen();

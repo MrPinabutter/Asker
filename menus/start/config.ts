@@ -1,7 +1,7 @@
 import { MENU_STATE } from "../../core/input/menu";
 import { COLORS } from "../../core/terminal/colors";
 import { clearScreen } from "../../core/terminal/screen";
-import { navigateToMenu } from "../../main";
+import { navigateToMenu } from "../../navigate";
 
 export const menuStartOptions = [
   {

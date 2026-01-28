@@ -1,6 +1,5 @@
 import { readdir, readFileSync } from "node:fs";
 import { clearScreen } from "../../core/terminal/screen";
-import { navigateToMenu } from "../../main";
 import {
   chooseOption,
   handleUpdateOptionsMenu,
@@ -10,6 +9,7 @@ import { COLORS } from "../../core/terminal/colors";
 import { getFileInfo } from "../../utils/files";
 import { showCursor } from "../../core/terminal/cursor";
 import { createInterface } from "node:readline";
+import { navigateToMenu } from "../../navigate";
 
 let selectedOption = 1;
 

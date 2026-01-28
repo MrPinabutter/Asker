@@ -1,4 +1,7 @@
 import { COLORS } from "../terminal/colors";
+import { showCursor } from "../terminal/cursor";
+import { clearScreen } from "../terminal/screen";
+import { KeyCode } from "./keycodes";
 
 export enum MENU_STATE {
   MAIN = 1,
@@ -33,6 +36,36 @@ export const chooseOption = (
     }
   });
 };
+
+export const handleUpdateOptionsMenu =
+  (
+    options: { id: number; label: string; action: () => void }[],
+    selectedOption: number,
+  ) =>
+  (key: Buffer) => {
+    if (key[2] === KeyCode.DOWN_ARROW) {
+      if (selectedOption < options.length) {
+        selectedOption++;
+        clearScreen();
+        chooseOption(selectedOption, options);
+      }
+    } else if (key[2] === KeyCode.UP_ARROW) {
+      if (selectedOption > 1) {
+        selectedOption--;
+        clearScreen();
+        chooseOption(selectedOption, options);
+      }
+    } else if (key[0] === KeyCode.ENTER) {
+      clearScreen();
+      process.stdin.removeAllListeners("data");
+
+      options.find((option) => option.id === selectedOption)?.action();
+    } else if (key[0] === KeyCode.ESC || key[0] === KeyCode.CTRL_C) {
+      showCursor();
+      clearScreen();
+      process.exit();
+    }
+  };
 
 const renderIsGoBackOption = (label: string, isSelected: boolean) => {
   if (isSelected) {

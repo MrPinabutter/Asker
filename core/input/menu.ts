@@ -60,7 +60,7 @@ export const handleUpdateOptionsMenu =
       process.stdin.removeAllListeners("data");
 
       options.find((option) => option.id === selectedOption)?.action();
-    } else if (key[0] === KeyCode.ESC || key[0] === KeyCode.CTRL_C) {
+    } else if (key[0] === KeyCode.CTRL_C) {
       showCursor();
       clearScreen();
       process.exit();

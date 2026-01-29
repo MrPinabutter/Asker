@@ -60,6 +60,7 @@ const addQuestionToForm = (
     `${COLORS.CYAN}${COLORS.BOLD}Question ${question}:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
   );
   rl.question("> ", (answer) => {
+    rl.close();
     if (!answer) {
       navigateToMenu(MENU_STATE.MAIN);
       return;
@@ -72,7 +73,5 @@ const addQuestionToForm = (
       process.stdout.write(`\n`);
       addQuestionToForm(formTitle, timestamp, question + 1);
     });
-
-    rl.close();
   });
 };

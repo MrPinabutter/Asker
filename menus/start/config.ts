@@ -1,6 +1,4 @@
 import { MENU_STATE } from "../../core/input/menu";
-import { COLORS } from "../../core/terminal/colors";
-import { clearScreen } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
 
 export const menuStartOptions = [
@@ -22,13 +20,8 @@ export const menuStartOptions = [
     id: 3,
     label: "Look answers",
     action: () => {
-      clearScreen();
-      process.stdout.write(
-        `${COLORS.YELLOW}Feature not implemented yet. Returning to main menu...${COLORS.RESET}\n`,
-      );
-
       setTimeout(() => {
-        navigateToMenu(MENU_STATE.MAIN);
+        navigateToMenu(MENU_STATE.LOOK_ANSWERS);
       }, 2000);
     },
   },

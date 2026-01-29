@@ -20,9 +20,7 @@ export const menuStartOptions = [
     id: 3,
     label: "Look answers",
     action: () => {
-      setTimeout(() => {
-        navigateToMenu(MENU_STATE.LOOK_ANSWERS);
-      }, 2000);
+      navigateToMenu(MENU_STATE.LOOK_ANSWERS);
     },
   },
 ];

@@ -44,23 +44,34 @@ export const showMenuLookAnswers = () => {
         const result = firstLine?.split(" - ");
         const title = result?.[1];
 
-        const date = dayjs(timestamp).format("DD/MM/YYYY HH:mm");
+        const date = dayjs(timestamp).format("DD/MM/YYYY HH:mm:ss");
 
         return { filename, title: `(${date}) - ${title}` };
       })
       .toSorted((a, b) => a?.title.localeCompare(b?.title));
 
     const options = titleFiles.map((file, index) => ({
-      id: index + 1,
+      id: index + 2,
       label: file.title,
       action: () => {
         const content = readFileSync(`./answers/${file.filename}`, "utf-8");
         clearScreen();
 
-        process.stdout.write(`${content}\n`);
+        const lines = content.split("\n");
+        const formattedLines = lines.map((line, index) => {
+          if (index === 0) {
+            return `${COLORS.BOLD}${COLORS.MAGENTA}${file.title}${COLORS.RESET}`;
+          }
+          if (line.startsWith("Q:")) {
+            return `${COLORS.BOLD}${COLORS.CYAN}${line}${COLORS.RESET}`;
+          }
+          return line;
+        });
+
+        process.stdout.write(`${formattedLines.join("\n")}\n`);
 
         process.stdout.write(
-          `\n${COLORS.DIM}Press any key to go back to the answers menu...${COLORS.RESET}\n`,
+          `${COLORS.DIM}Press any key to go back to the answers menu...${COLORS.RESET}\n`,
         );
 
         process.stdin.removeAllListeners("data");
@@ -71,7 +82,21 @@ export const showMenuLookAnswers = () => {
           showMenuLookAnswers();
         });
       },
-    }));
+    })) as {
+      id: number;
+      label: string;
+      isGoBack?: boolean;
+      action: () => void;
+    }[];
+
+    options.unshift({
+      id: 1,
+      label: "Go back",
+      action: () => {
+        navigateToMenu(MENU_STATE.MAIN);
+      },
+      isGoBack: true,
+    });
 
     chooseOption(selectedOption, options);
 

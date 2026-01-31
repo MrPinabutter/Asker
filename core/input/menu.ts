@@ -8,6 +8,7 @@ export enum MENU_STATE {
   SELECT_FORM,
   CREATE_FORM,
   LOOK_ANSWERS,
+  REMOVE_FORM,
 }
 
 export const chooseOption = (

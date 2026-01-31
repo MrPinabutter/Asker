@@ -23,4 +23,11 @@ export const menuStartOptions = [
       navigateToMenu(MENU_STATE.LOOK_ANSWERS);
     },
   },
+  {
+    id: 4,
+    label: "Remove form",
+    action: () => {
+      navigateToMenu(MENU_STATE.REMOVE_FORM);
+    },
+  },
 ];

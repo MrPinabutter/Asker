@@ -1,16 +1,15 @@
 import { readdir, readFileSync } from "node:fs";
-import { createInterface } from "node:readline";
 import {
   chooseOption,
   handleUpdateOptionsMenu,
   MENU_STATE,
 } from "../../core/input/menu";
 import { COLORS } from "../../core/terminal/colors";
-import { showCursor } from "../../core/terminal/cursor";
 import { clearScreen } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
 import { getTimestamp } from "../../utils/date";
 import { getFileInfo } from "../../utils/files";
+import { makeQuestion } from "../../core/input/question";
 
 let selectedOption = 1;
 
@@ -122,26 +121,18 @@ const renderQuestions = ({
     return;
   }
 
-  showCursor();
-  process.stdin.setRawMode(false);
-
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
   const question = questions[index];
 
-  process.stdout.write(
-    `${COLORS.CYAN}${COLORS.BOLD}Q${index + 1}: ${question}${COLORS.RESET}\n`,
-  );
-
-  rl.question("> ", (answer) => {
-    rl.close();
+  const handleRenderQuestion = (answer: string) => {
     process.stdout.write("\n");
     saveAnswer(question as string, answer, logFilePath);
     renderQuestions({ questions, index: index + 1, logFilePath });
-  });
+  };
+
+  makeQuestion(
+    `${COLORS.CYAN}${COLORS.BOLD}Q${index + 1}: ${question}${COLORS.RESET}\n`,
+    handleRenderQuestion,
+  );
 };
 
 const saveAnswer = (question: string, answer: string, logFilePath: string) => {

@@ -11,6 +11,8 @@ const menuLoaders = {
     import("../menus/createForm").then((mod) => mod.showMenuCreateForm()),
   [MENU_STATE.LOOK_ANSWERS]: () =>
     import("../menus/lookAnswers").then((mod) => mod.showMenuLookAnswers()),
+  [MENU_STATE.REMOVE_FORM]: () =>
+    import("../menus/removeForm").then((mod) => mod.showRemoveForm()),
 } as const;
 
 export const navigateToMenu = (menu: MENU_STATE) => {

@@ -8,6 +8,7 @@ import { COLORS } from "../../core/terminal/colors";
 import { clearScreen } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
 import { makeQuestion } from "../../core/input/question";
+import { renderColor } from "../../core/input/text";
 
 let selectedOption = 1;
 
@@ -73,20 +74,20 @@ const handleDeleteForm =
     const logFilePath = `./forms/${filename}`;
     process.stdin.setRawMode(false);
 
-    const question = `Are you sure you want to delete ${COLORS.MAGENTA}${title}${COLORS.RESET}?`;
+    const question = `Are you sure you want to delete ${renderColor(title, COLORS.MAGENTA)}?`;
 
     makeQuestion(
-      `${COLORS.CYAN}${COLORS.BOLD}${question}${COLORS.RESET}${COLORS.DIM} This action cannot be undone. (y/n)${COLORS.RESET}\n`,
+      `${renderColor(question, [COLORS.CYAN, COLORS.BOLD])}${renderColor(" This action cannot be undone. (y/n)", COLORS.DIM)}\n`,
       (answer: string) => {
         if (answer.toLowerCase() === "y") {
           try {
             unlinkSync(logFilePath);
             process.stdout.write(
-              `${COLORS.GREEN}Form deleted successfully.${COLORS.RESET}\n`,
+              `${renderColor("Form deleted successfully.", COLORS.GREEN)}\n`,
             );
           } catch {
             process.stdout.write(
-              `${COLORS.RED}Error deleting form.${COLORS.RESET}\n`,
+              `${renderColor("Error deleting form.", COLORS.RED)}\n`,
             );
           }
 

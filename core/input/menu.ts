@@ -2,6 +2,7 @@ import { COLORS } from "../terminal/colors";
 import { showCursor } from "../terminal/cursor";
 import { clearScreen } from "../terminal/screen";
 import { KeyCode } from "./keycodes";
+import { renderColor } from "./text";
 
 export enum MENU_STATE {
   MAIN = 1,
@@ -19,7 +20,10 @@ export const chooseOption = (
   const title = props?.title ?? "Select an option:";
 
   process.stdout.write(
-    `${COLORS.CYAN}${COLORS.BOLD}${title}${COLORS.RESET} ${COLORS.DIM}(use arrow keys, press Enter to confirm)${COLORS.RESET}\n\n`,
+    `${renderColor(title, [COLORS.CYAN, COLORS.BOLD])} ${renderColor(
+      "(use arrow keys, press Enter to confirm)",
+      COLORS.DIM,
+    )}\n\n`,
   );
 
   options.forEach((option) => {
@@ -30,10 +34,12 @@ export const chooseOption = (
 
     if (option.id === selected) {
       process.stdout.write(
-        `${COLORS.BG_GREEN}${COLORS.BLACK}${COLORS.BOLD} ▶ ${option.label}${COLORS.RESET}\n`,
+        `${renderColor(" ▶ " + option.label, [COLORS.BG_GREEN, COLORS.BLACK, COLORS.BOLD])}\n`,
       );
     } else {
-      process.stdout.write(`${COLORS.DIM}   ${option.label}${COLORS.RESET}\n`);
+      process.stdout.write(
+        renderColor("   " + option.label, COLORS.DIM) + "\n",
+      );
     }
   });
 };
@@ -71,10 +77,12 @@ export const handleUpdateOptionsMenu =
 const renderIsGoBackOption = (label: string, isSelected: boolean) => {
   if (isSelected) {
     process.stdout.write(
-      `${COLORS.BG_RED}${COLORS.BOLD} ← ${label}${COLORS.RESET}\n`,
+      `${renderColor(" ← " + label, [COLORS.BG_RED, COLORS.BOLD])}${COLORS.RESET}\n`,
     );
     return;
   }
 
-  process.stdout.write(`${COLORS.RED} ← ${label}${COLORS.RESET}\n`);
+  process.stdout.write(
+    `${renderColor(" ← " + label, COLORS.RED)}${COLORS.RESET}\n`,
+  );
 };

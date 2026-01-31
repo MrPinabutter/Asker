@@ -5,6 +5,7 @@ import { clearScreen, printSeparator } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
 import { getTimestamp } from "../../utils/date";
 import { makeQuestion } from "../../core/input/question";
+import { renderColor } from "../../core/input/text";
 
 const handleGetTitleForm = (formTitle: string) => {
   if (!formTitle) {
@@ -22,7 +23,7 @@ const handleGetTitleForm = (formTitle: string) => {
 
   clearScreen();
 
-  const message = ` ${COLORS.BOLD}"${formTitle.trim()}"${COLORS.RESET}`;
+  const message = ` ${renderColor(formTitle.trim(), [COLORS.BOLD])}`;
   process.stdout.write(`\n${message}${COLORS.RESET}\n`);
 
   printSeparator();
@@ -32,7 +33,7 @@ const handleGetTitleForm = (formTitle: string) => {
 export const showMenuCreateForm = () => {
   clearScreen();
   makeQuestion(
-    `${COLORS.CYAN}${COLORS.BOLD}Type a title to your form:${COLORS.RESET} ${COLORS.DIM}(empty to cancel)${COLORS.RESET}\n\n`,
+    `${renderColor("Type a title to your form:", [COLORS.CYAN, COLORS.BOLD])} ${renderColor("(empty to cancel)", COLORS.DIM)}\n\n`,
     handleGetTitleForm,
   );
 };
@@ -60,7 +61,10 @@ const addQuestionToForm = (
   index: number = 1,
 ) => {
   makeQuestion(
-    `${COLORS.CYAN}${COLORS.BOLD}Question ${index}:${COLORS.RESET} ${COLORS.DIM}(empty to finish)${COLORS.RESET}\n\n`,
+    renderColor(`Question ${index}:`, [COLORS.CYAN, COLORS.BOLD]) +
+      " " +
+      renderColor("(empty to finish)", COLORS.DIM) +
+      "\n\n",
     handleGetQuestionForm(formTitle, timestamp, index),
   );
 };

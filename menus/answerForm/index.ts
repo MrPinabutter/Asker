@@ -10,6 +10,7 @@ import { navigateToMenu } from "../../navigate";
 import { getTimestamp } from "../../utils/date";
 import { getFileInfo } from "../../utils/files";
 import { makeQuestion } from "../../core/input/question";
+import { renderColor } from "../../core/input/text";
 
 let selectedOption = 1;
 
@@ -24,7 +25,7 @@ export const showMenuAnswerForm = () => {
 
     if (files.length === 0) {
       process.stdout.write(
-        `${COLORS.YELLOW}No forms available. Returning to main menu...${COLORS.RESET}\n`,
+        `${renderColor("No forms available. Returning to main menu...", COLORS.YELLOW)}\n`,
       );
 
       setTimeout(() => {
@@ -75,7 +76,7 @@ const handleSelectForm =
 
     if (fileInfo.questions.length === 0) {
       process.stdout.write(
-        `${COLORS.YELLOW}This form has no questions. Returning to main menu...${COLORS.RESET}\n`,
+        `${renderColor("This form has no questions. Returning to main menu...", COLORS.YELLOW)}\n`,
       );
 
       setTimeout(() => {
@@ -130,7 +131,8 @@ const renderQuestions = ({
   };
 
   makeQuestion(
-    `${COLORS.CYAN}${COLORS.BOLD}Q${index + 1}: ${question}${COLORS.RESET}\n`,
+    renderColor(`Q${index + 1}: ${question}`, [COLORS.CYAN, COLORS.BOLD]) +
+      "\n",
     handleRenderQuestion,
   );
 };
@@ -142,11 +144,15 @@ const saveAnswer = (question: string, answer: string, logFilePath: string) => {
 
 const handleFinishForm = (logFilePath: string) => {
   process.stdout.write(
-    `${COLORS.GREEN}You have completed the form. The file has been saved as ${logFilePath}${COLORS.RESET}\n`,
+    renderColor(
+      `You have completed the form. The file has been saved as ${logFilePath}`,
+      COLORS.GREEN,
+    ) + "\n",
   );
 
   process.stdout.write(
-    `${COLORS.YELLOW}Press any key to return to the main menu...${COLORS.RESET}\n`,
+    renderColor("Press any key to return to the main menu...", COLORS.YELLOW) +
+      "\n",
   );
 
   process.stdin.setRawMode(true);

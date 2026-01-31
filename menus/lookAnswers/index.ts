@@ -8,6 +8,7 @@ import { COLORS } from "../../core/terminal/colors";
 import { readdir, readFileSync } from "node:fs";
 import { clearScreen } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
+import { renderColor } from "../../core/input/text";
 
 const selectedOption = 1;
 
@@ -17,14 +18,17 @@ export const showMenuLookAnswers = () => {
   readdir(answersDir, (err, files) => {
     if (err) {
       process.stdout.write(
-        `${COLORS.RED}Error reading answers directory: ${err.message}${COLORS.RESET}\n`,
+        renderColor(
+          `Error reading answers directory: ${err.message}`,
+          COLORS.RED,
+        ) + "\n",
       );
       return;
     }
 
     if (files.length === 0) {
       process.stdout.write(
-        `${COLORS.YELLOW}No answers found in the directory.${COLORS.RESET}\n`,
+        renderColor("No answers found in the directory.", COLORS.YELLOW) + "\n",
       );
 
       setTimeout(() => {
@@ -60,10 +64,10 @@ export const showMenuLookAnswers = () => {
         const lines = content.split("\n");
         const formattedLines = lines.map((line, index) => {
           if (index === 0) {
-            return `${COLORS.BOLD}${COLORS.MAGENTA}${file.title}${COLORS.RESET}`;
+            return renderColor(file.title, [COLORS.BOLD, COLORS.MAGENTA]);
           }
           if (line.startsWith("Q:")) {
-            return `${COLORS.BOLD}${COLORS.CYAN}${line}${COLORS.RESET}`;
+            return renderColor(line, [COLORS.BOLD, COLORS.CYAN]);
           }
           return line;
         });
@@ -71,7 +75,10 @@ export const showMenuLookAnswers = () => {
         process.stdout.write(`${formattedLines.join("\n")}\n`);
 
         process.stdout.write(
-          `${COLORS.DIM}Press any key to go back to the answers menu...${COLORS.RESET}\n`,
+          renderColor(
+            "Press any key to go back to the answers menu...",
+            COLORS.DIM,
+          ) + "\n",
         );
 
         process.stdin.removeAllListeners("data");

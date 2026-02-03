@@ -1,4 +1,4 @@
-import { readdir, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import {
   chooseOption,
   handleUpdateOptionsMenu,
@@ -8,71 +8,57 @@ import { COLORS } from "../../core/terminal/colors";
 import { clearScreen } from "../../core/terminal/screen";
 import { navigateToMenu } from "../../navigate";
 import { getTimestamp } from "../../utils/date";
-import { getFileInfo } from "../../utils/files";
 import { makeQuestion } from "../../core/input/question";
 import { renderColor } from "../../core/input/text";
+import { FormService } from "../../services/form";
 
 let selectedOption = 1;
 
 export const showMenuAnswerForm = () => {
   clearScreen();
-  readdir("./forms", (err, files) => {
-    if (err) {
-      console.error("Error reading forms directory:", err);
+  const files = FormService.getAll();
+
+  if (files.length === 0) {
+    process.stdout.write(
+      `${renderColor("No forms available. Returning to main menu...", COLORS.YELLOW)}\n`,
+    );
+
+    setTimeout(() => {
       navigateToMenu(MENU_STATE.MAIN);
-      return;
-    }
+    }, 2000);
+    return;
+  }
 
-    if (files.length === 0) {
-      process.stdout.write(
-        `${renderColor("No forms available. Returning to main menu...", COLORS.YELLOW)}\n`,
-      );
+  const options = files.map((file, index) => ({
+    id: index + 2,
+    label: file.title,
+    action: handleSelectForm(file),
+  })) as {
+    id: number;
+    label: string;
+    action: () => void;
+    isGoBack?: boolean;
+  }[];
 
-      setTimeout(() => {
-        navigateToMenu(MENU_STATE.MAIN);
-      }, 2000);
-      return;
-    }
-
-    const titleFiles = files
-      .map((filename) => {
-        const content = readFileSync(`./forms/${filename}`, "utf-8");
-        const title = content.split("\n")[0];
-        return { filename, title: title || "Untitled Form" };
-      })
-      .toSorted((a, b) => a?.title.localeCompare(b?.title));
-
-    const options = titleFiles.map((file, index) => ({
-      id: index + 2,
-      label: file.title,
-      action: handleSelectForm(file),
-    })) as {
-      id: number;
-      label: string;
-      action: () => void;
-      isGoBack?: boolean;
-    }[];
-
-    options.unshift({
-      id: 1,
-      label: "Go back",
-      action: () => {
-        navigateToMenu(MENU_STATE.MAIN);
-      },
-      isGoBack: true,
-    });
-
-    chooseOption(selectedOption, options);
-
-    process.stdin.on("data", handleUpdateOptionsMenu(options, selectedOption));
+  options.unshift({
+    id: 1,
+    label: "Go back",
+    action: () => {
+      navigateToMenu(MENU_STATE.MAIN);
+    },
+    isGoBack: true,
   });
+
+  chooseOption(selectedOption, options);
+
+  process.stdin.on("data", handleUpdateOptionsMenu(options, selectedOption));
 };
 
 const handleSelectForm =
   ({ filename, title }: { filename: string; title: string }) =>
   () => {
     clearScreen();
-    const fileInfo = getFileInfo(filename);
+    const fileInfo = FormService.getByFilename(filename);
 
     if (fileInfo.questions.length === 0) {
       process.stdout.write(

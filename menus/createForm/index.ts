@@ -1,4 +1,3 @@
-import { writeFile, appendFile } from "node:fs";
 import { MENU_STATE } from "../../core/input/menu";
 import { COLORS } from "../../core/terminal/colors";
 import { clearScreen, printSeparator } from "../../core/terminal/screen";
@@ -6,6 +5,7 @@ import { navigateToMenu } from "../../navigate";
 import { getTimestamp } from "../../utils/date";
 import { makeQuestion } from "../../core/input/question";
 import { renderColor } from "../../core/input/text";
+import { FormService } from "../../services/form";
 
 const handleGetTitleForm = (formTitle: string) => {
   if (!formTitle) {
@@ -15,11 +15,7 @@ const handleGetTitleForm = (formTitle: string) => {
 
   const timestamp = getTimestamp();
 
-  writeFile(`./forms/${timestamp}.txt`, formTitle.trim() + "\n", (err) => {
-    if (err) {
-      console.error("Error creating form:", err);
-    }
-  });
+  FormService.create(formTitle, timestamp);
 
   clearScreen();
 
@@ -46,13 +42,10 @@ const handleGetQuestionForm =
       return;
     }
 
-    appendFile(`./forms/${timestamp}.txt`, question.trim() + "\n", (err) => {
-      if (err) {
-        console.error("Error creating form:", err);
-      }
-      process.stdout.write(`\n`);
-      addQuestionToForm(formTitle, timestamp, index + 1);
-    });
+    FormService.addQuestion(timestamp, question);
+
+    process.stdout.write(`\n`);
+    addQuestionToForm(formTitle, timestamp, index + 1);
   };
 
 const addQuestionToForm = (

@@ -22,6 +22,7 @@ export const showMenuAnswerForm = () => {
     process.stdout.write(
       `${renderColor("No forms available. Returning to main menu...", COLORS.YELLOW)}\n`,
     );
+    console.log(files);
 
     setTimeout(() => {
       navigateToMenu(MENU_STATE.MAIN);
